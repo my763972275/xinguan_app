@@ -1,0 +1,247 @@
+<template>
+	<view class="content">
+		<view class="content-img">
+			<image src="/static/images/bg.png" mode="widthFix"></image>
+		</view>
+		<view class="wx-share">分享</view>
+		<view class="source">数据来源：江苏省卫健委</view>
+		<!-- 白色区域部分 -->
+		<view class="content-main">
+			<!-- 统计时间 -->
+			<view class="times">统计截至  2020-06-18 3:57:00</view>
+			<!-- 累计数量 -->
+			<view class="content-main-data">
+				<block v-for="(item,index) in datas" :key="index">
+					<view>
+						<text>{{item.data}}</text>
+						<text>{{item.diagnose}}</text>
+					</view>
+				</block>
+			</view>
+			<!-- 菜单 -->
+			<view class="content-menu">
+				<block v-for="(item,index) in menu" :key="index">
+					<view class="content-menu-table">
+						<view>
+							<image :src="item.img" mode = widthFix></image>
+						</view>
+						<view class="content-menu-text">
+							<text>{{item.text}}</text>
+							<text>{{item.label}}</text>
+						</view>
+					</view>
+				</block>
+			</view>
+			<!-- 地图 -->
+			<province-map></province-map>
+			<!-- 折线图 -->
+			<broke-line></broke-line>
+			<!-- 表格 -->
+			<Table></Table>
+		</view>
+	</view>
+</template>
+
+<script>
+	//操作数据库的类
+	let Dbadd = require('../../config/dbbase.js');
+	//计算总和的类
+	let theSum = require('../../config/sum.js');
+	import ProvinceMap from './components/map.vue';
+	import BrokeLine from './components/line.vue';
+	import Table from './components/table.vue'
+	export default {
+		components:{
+			ProvinceMap,
+			BrokeLine,
+			Table
+		},
+		data() {
+			return {
+				datas:[
+					{
+						'data':0,
+						'diagnose':'累积确诊'
+					},
+					{
+						'data':0,
+						'diagnose':'累积治愈'
+					},
+					{
+						'data':0,
+						'diagnose':'累积死亡'
+					}
+				],
+				menu:[
+					{
+						'img':'../../static/images/logo1.png',
+						'text':'健康信息',
+						'label':'上报健康信息',
+						'url':'../report/report'
+					},
+					{
+						'img':'../../static/images/logo2.png',
+						'text':'疫情新闻',
+						'label':'热点早知道',
+						'url':'../news/news'
+					},
+					{
+						'img':'../../static/images/logo3.png',
+						'text':'粉碎谣言',
+						'label':'假消息不能信',
+						'url':'../news/news'
+					},
+					{
+						'img':'../../static/images/logo4.png',
+						'text':'复工复产',
+						'label':'复工出行助你安全',
+						'url':'../news/news'
+					}
+				]
+			}
+		},
+		methods: {
+			//获取确诊，治愈，死亡三个集合的数据
+            xinguanData(){
+				let arr = [
+					new Dbadd('diagnosis').pullGet(),
+					new Dbadd('cure').pullGet(),
+					new Dbadd('death').pullGet()
+				]
+				//promise.all同时请求多个集合的数据
+				Promise.all(arr)
+				.then(res => {
+					console.log(res)
+					let diagdata = res[0].data
+					let curedata = res[1].data
+					let deathdata = res[2].data
+					//计算累计确诊，治愈，死亡的方法
+					this.covidTotal(diagdata,curedata,deathdata)
+				})
+				.catch(err => {
+					console.log(err)
+				})
+			},
+			//计算累计确诊，治愈，死亡的方法
+			async covidTotal(diagdata,curedata,deathdata){
+				//累计确诊
+				let diag = await new theSum(diagdata).Total()
+				let cure = await new theSum(curedata).Total()
+				let death = await new theSum(deathdata).Total()
+				this.$set(this.datas[0],'data',diag.numdata)
+				this.$set(this.datas[1],'data',cure.numdata)
+				this.$set(this.datas[2],'data',death.numdata)
+			}
+	    },
+		created(){
+			this.xinguanData()
+		}
+	}
+</script>
+
+<style scoped>
+	.content{
+		position:relative;
+	}
+	.content-img{
+		width:750upx;
+		height:450upx;
+		background:#4CD964;
+		/* overflow: hidden; */
+	}
+	.content-img image{
+		width:750upx;
+		display:block;
+		height:100% !important;
+	}
+	.wx-share{
+		position:absolute;
+		top:280upx;
+		right:0;
+		color:black;
+		font-size: 25upx;
+		background-color: #00ff80;
+		width:100upx;
+		height:50upx;
+		line-height: 50upx;
+		text-align: center;
+		border-top-left-radius:25upx;
+		border-bottom-left-radius:25upx;
+	}
+	.source{
+		position:absolute;
+		top:350upx;
+		right:0;
+		color:white;
+		font-weight: bold;
+		font-size:25upx;
+		padding-right:10upx;
+	}
+	.content-main{
+		position:absolute;
+		top:400upx;
+		left:0;
+		right:0;
+		padding:20upx 10upx;
+		background: white;
+		border-top-left-radius:30upx;
+		border-top-right-radius:30upx;
+		margin-bottom:100upx;
+	}
+	.times{
+		font-size: 25upx;
+		height:50upx;
+	}
+	.content-main-data{
+		background:#f8f8f8;
+		border-radius: 10upx;
+		height:150upx;
+		display:flex;
+		justify-content: space-around;
+		align-items: center;
+	}
+	.content-main-data text{
+		display:block;
+		text-align: center;
+	}
+	.content-main-data text:nth-child(1){
+		color:#cc1e1f;
+		font-size: 40upx;
+		font-weight: bold;
+	}
+	.content-main-data text:nth-child(2){
+		color:#b5b5b5;
+		font-size:25upx;
+		padding:10upx 0;
+	}
+	.content-menu{
+		background:#f8f8f8;
+		border-radius:10upx;
+		padding-left:10upx;
+		margin-top:20upx;
+		height:200upx;
+		display:flex;
+		flex-wrap:wrap;
+		justify-content: space-between;
+	}
+	.content-menu-table text{
+		display:block;
+	}
+	.content-menu-table image{
+		width:60upx;
+		height:60upx;
+		padding-right:15upx;
+	}
+	.content-menu-table{
+		display:flex;
+		align-items: center;
+		width:50%;
+	}
+	.content-menu-text text:nth-child(1){
+		font-size:30upx;
+	}
+	.content-menu-text text:nth-child(2){
+	    color:#9a9a9a;
+		font-size:25upx;
+	}
+</style>
