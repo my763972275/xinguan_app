@@ -8,32 +8,56 @@
 </template>
 
 <script>
+	let moment = require('../../../node_modules/_moment@2.27.0@moment')
+	moment.locale('zh-cn')
+	let linechart = require('../../../config/linechart.js')
 	import uCharts from '@/components/u-charts/u-charts.js';
-	let linedata = require('config/data.json');
+	import {newline} from  '../../../config/linedata.js'
 	var canvaLine = null;
 	var lastMoveTime = null; //最后执行移动的时间戳
 	export default{
+		props:{
+			linedata:Array
+		},
+		watch:{
+			async linedata(newvalue,oldvalue){
+				let arr = [5,4,3,2,1,0]
+				this.catedays = arr.map(item => {
+					return moment().subtract(0,'days').format('MM-DD')
+				})
+				// 新增确诊人数
+				this.samedaydia = await new linechart(this.catedays,newvalue[0].data).lineChartData()
+				this.samedaycure = await new linechart(this.catedays,newvalue[1].data).lineChartData()
+				this.samedaydeath = await new linechart(this.catedays,newvalue[2].data).lineChartData()
+				let vbclin = newline(this.catedays,this.samedaydia,this.samedaycure,this.samedaydeath)
+				this.cWidth=uni.upx2px(700);
+				this.cHeight=uni.upx2px(500);
+				this.getServerData(vbclin);
+			}
+		},
 		data(){
 			return{
 				cWidth: '',
 				cHeight: '',
-				pixelRatio: 1
+				pixelRatio: 1,
+				catedays:[],
+				samedaydia:[],
+				samedaycure:[],
+				samedaydeath:[]
 			}
 		},
 		mounted() {
-			this.cWidth=uni.upx2px(700);
-			this.cHeight=uni.upx2px(500);
-			this.getServerData();
+			
 		},
 		methods:{
-			getServerData(){
-				let lineDatas = linedata.data.lineA.chartData;
+			getServerData(vbclin){
+				// let lineDatas = linedata.data.lineA.chartData;
 				let LineA = {categories:[],series:[]};
-				LineA.categories = lineDatas.categories;
-				LineA.series = lineDatas.series;
+				LineA.categories = vbclin.categories;
+				LineA.series = vbclin.series;
 				//第二根线为虚线的设置
-				LineA.series[1].lineType = 'dash';
-				LineA.series[1].dashLength = 10;
+				// LineA.series[1].lineType = 'dash';
+				// LineA.series[1].dashLength = 10;
 				this.showLine('canvasLine',LineA)
 			},
 			showLine(canvasId,chartData){
@@ -41,7 +65,7 @@
 					$this:this,
 					canvasId: canvasId,
 					type: 'line',
-					colors:['#facc14','#f04864','#8543e0','#90ed7d'],
+					colors:['#facc14','#f04864','#8543e0'],
 					fontSize:11,
 					padding:[15,15,0,15],
 					legend:{
@@ -90,7 +114,7 @@
 						return category + ' ' + item.name + ':' + item.data
 					}
 				});
-			},
+			}
 		}
 	}
 </script>

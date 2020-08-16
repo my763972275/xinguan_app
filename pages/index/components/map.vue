@@ -10,24 +10,41 @@
 <script>
 import uCharts from '@/components/u-charts/u-charts.js';
 let jiangsu = require('config/jiangsu.json');
+import {arrRess} from '../../../config/jiangsudata.js'
 var canvaMap = null;
 export default {
+	props:{
+		mapdata:Array
+	},
+	watch:{
+		mapdata(newvalue,oldvalue){
+			newvalue.forEach(item => {
+			   for(let i in item.diadata){
+				   this.regiondata[`${i}`] = item.diadata[i]
+			   }
+			   this.mapdatas = arrRess(this.regiondata)
+			   this.cWidth=uni.upx2px(650);
+			   this.cHeight=uni.upx2px(700);
+			   this.getServerData(this.mapdatas);
+			})
+		}
+	},
 	data() {
 		return {
 			cWidth: '',
 			cHeight: '',
-			pixelRatio: 1
+			pixelRatio: 1,
+			//接收所有城市确诊数的对象
+			regiondata:{},
+			mapdatas:[]
 		};
 	},
 	mounted() {
-		this.cWidth=uni.upx2px(650);
-		this.cHeight=uni.upx2px(700);
-		this.getServerData();
 	},
 	methods: {
-		getServerData() {
-			let cMap = jiangsu.features;
-			this.showMap('canvasPie', cMap);
+		getServerData(mapdatas) {
+			// let cMap = jiangsu.features;
+			this.showMap('canvasPie', mapdatas);
 		},
 		showMap(canvasId, chartData) {
 			canvaMap=new uCharts({
@@ -58,8 +75,18 @@ export default {
 			    }
 			  }
 			});
+			let cindex = 1;
+			let textList = [{text:`无锡市:确诊${this.regiondata.Wuxi}`,color:'#facc14'}]
+			let tmpevent = {mp:{changedTouches:[{x:197,y:265}]}}
+			setTimeout(()=>{
+				canvaMap.showToolTip(tmpevent,{
+					index:cindex,
+					textList:textList
+				})
+			},200)
 		},
 		touchPie(e){
+			console.log(e)
 			canvaMap.showToolTip(e,{
 				format:function(item){
 					return item.properties.name + ': 确诊' + item.properties.subFeatureIndex

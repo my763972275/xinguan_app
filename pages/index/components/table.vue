@@ -11,7 +11,7 @@
 			</view>
 		</view>
 		<view>
-			<block v-for="(item,index) in  tabledatas" :key="index">
+			<block v-for="(item,index) in  datas" :key="index">
 				<view class="table-datas">
 					<text>{{item.address}}</text>
 					<text>{{item.newly}}</text>
@@ -25,7 +25,14 @@
 </template>
 
 <script>
+	let moment = require('../../../node_modules/_moment@2.27.0@moment')
+	moment.locale('zh-cn')
+	//表格数据处理的类
+	let Tablelist = require('../../../config/tablelist.js')
 	export default{
+		props:{
+			tabledata:Array
+		},
 		data(){
 			return{
 				tables:[
@@ -35,17 +42,59 @@
 					"治愈",
 					"死亡"
 				],
-				tabledatas:[
-					{
-						address:'境外输入',
-						newly:14,
-						accumulate:35,
-						cure:74,
-						death:2
-					},
-				]
+				datas:[]
 			}
 		},
+		watch:{
+			async tabledata(newvalue,oldvalue){
+				let newdig = newvalue[0].data
+				let newcure = newvalue[1].data
+				let newdeath = newvalue[2].data
+				let now = moment().format('YYYY-MM-DD')
+				let timeday = []
+				timeday.push(now)
+				let newdisgarr = timeday.map((val) => {
+					let tabledays = newdig.filter(item => {
+						return moment(item.time).format('YYYY-MM-DD') == val
+					})
+					return tabledays
+				})
+				let objlist = newdisgarr[0].map(item => {
+					let arrlist = []
+					for(let key in item.diadata){
+						arrlist.push(item.diadata[key])
+					}
+					return arrlist
+				})
+				//境外输入
+				let Abroad = await new Tablelist(objlist,0,newdig,newcure,newdeath,'境外输入').table()
+				this.datas.push(Abroad)
+				let Nanjing = await new Tablelist(objlist,1,newdig,newcure,newdeath,'南京').table()
+				this.datas.push(Nanjing)
+				let Wuxi = await new Tablelist(objlist,2,newdig,newcure,newdeath,'无锡').table()
+				this.datas.push(Wuxi)
+				let Xuzhou = await new Tablelist(objlist,3,newdig,newcure,newdeath,'徐州').table()
+				this.datas.push(Xuzhou)
+				let Changzhou = await new Tablelist(objlist,4,newdig,newcure,newdeath,'常州').table()
+				this.datas.push(Changzhou)
+				let Suzhou = await new Tablelist(objlist,5,newdig,newcure,newdeath,'苏州').table()
+				this.datas.push(Suzhou)
+				let Nantong = await new Tablelist(objlist,6,newdig,newcure,newdeath,'南通').table()
+				this.datas.push(Nantong)
+				let Lianyungang = await new Tablelist(objlist,7,newdig,newcure,newdeath,'连云港').table()
+				this.datas.push(Lianyungang)
+				let Huaian = await new Tablelist(objlist,8,newdig,newcure,newdeath,'淮安').table()
+				this.datas.push(Huaian)
+				let Yancheng = await new Tablelist(objlist,9,newdig,newcure,newdeath,'盐城').table()
+				this.datas.push(Yancheng)
+				let Yangzhou = await new Tablelist(objlist,10,newdig,newcure,newdeath,'扬州').table()
+				this.datas.push(Yangzhou)
+				let Zhenjiang = await new Tablelist(objlist,11,newdig,newcure,newdeath,'镇江').table()
+				this.datas.push(Zhenjiang)
+				let Taizhou = await new Tablelist(objlist,12,newdig,newcure,newdeath,'泰州').table()
+				this.datas.push(Taizhou)
+			}
+		}
 	}
 </script>
 

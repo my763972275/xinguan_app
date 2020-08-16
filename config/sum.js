@@ -14,14 +14,20 @@ class theSum {
 				return {data,times}
 			})
 			//取出value值
-			let objlist = disgarr.map((item)=>{
-				return Object.values(item.data)
+			// let objlist = disgarr.map((item)=>{
+			// 	return Object.values(item.data)
+			// })
+			let arrlist = []
+			disgarr.forEach(item =>{
+				for(let key in item.data){
+					arrlist.push(item.data[key])
+				}
 			})
 			//合并返回的value值为一个数组
-			let arrlist = []
-			objlist.forEach((item) =>{
-				arrlist.push(...item)
-			})
+			// let arrlist = []
+			// objlist.forEach((item) =>{
+			// 	arrlist.push(...item)
+			// })
 			//计算arrlist里的数字总和
 			let numdata = 0;
 			arrlist.forEach( item => {

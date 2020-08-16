@@ -3,12 +3,12 @@
 		<view class="content-img">
 			<image src="/static/images/bg.png" mode="widthFix"></image>
 		</view>
-		<view class="wx-share">分享</view>
+		<view class="wx-share" @click="shareFun">分享</view>
 		<view class="source">数据来源：江苏省卫健委</view>
 		<!-- 白色区域部分 -->
 		<view class="content-main">
 			<!-- 统计时间 -->
-			<view class="times">统计截至  2020-06-18 3:57:00</view>
+			<view class="times">统计截至  {{statimes}}</view>
 			<!-- 累计数量 -->
 			<view class="content-main-data">
 				<block v-for="(item,index) in datas" :key="index">
@@ -33,11 +33,11 @@
 				</block>
 			</view>
 			<!-- 地图 -->
-			<province-map></province-map>
+			<province-map :mapdata = "mapdata"></province-map>
 			<!-- 折线图 -->
-			<broke-line></broke-line>
+			<broke-line :linedata = "linedata"></broke-line>
 			<!-- 表格 -->
-			<Table></Table>
+			<Table :tabledata = "tabledata"></Table>
 		</view>
 	</view>
 </template>
@@ -47,6 +47,8 @@
 	let Dbadd = require('../../config/dbbase.js');
 	//计算总和的类
 	let theSum = require('../../config/sum.js');
+    //计算最晚时间
+	import {timeDay} from '../../config/timeday.js'
 	import ProvinceMap from './components/map.vue';
 	import BrokeLine from './components/line.vue';
 	import Table from './components/table.vue'
@@ -58,6 +60,10 @@
 		},
 		data() {
 			return {
+				statimes:'',
+				mapdata:[],
+				linedata:[],
+				tabledata:[],
 				datas:[
 					{
 						'data':0,
@@ -111,12 +117,17 @@
 				//promise.all同时请求多个集合的数据
 				Promise.all(arr)
 				.then(res => {
-					console.log(res)
 					let diagdata = res[0].data
 					let curedata = res[1].data
 					let deathdata = res[2].data
 					//计算累计确诊，治愈，死亡的方法
 					this.covidTotal(diagdata,curedata,deathdata)
+					// 地图的数据
+					this.mapdata = diagdata
+					// 折线图的数据
+					this.linedata = res
+					// 表格的数据
+					this.tabledata = res
 				})
 				.catch(err => {
 					console.log(err)
@@ -131,6 +142,24 @@
 				this.$set(this.datas[0],'data',diag.numdata)
 				this.$set(this.datas[1],'data',cure.numdata)
 				this.$set(this.datas[2],'data',death.numdata)
+				let timediag = diag.statime
+				let timecure = cure.statime
+				let timedeath = death.statime
+				//拆分合并为一个新数组
+				let arrtimes = [...timediag,...timecure,...timedeath]
+				this.statimes = timeDay(arrtimes)
+			},
+			shareFun(){
+				let obj = {
+					statimes:this.statimes,
+					dia:this.datas[0].data,
+					cure:this.datas[0].data,
+					death:this.datas[1].data
+				}
+				let strobj = JSON.stringify(obj)
+				wx.navigateTo({
+					url:'../canvasview/canvas?obj=' + strobj
+				})
 			}
 	    },
 		created(){
