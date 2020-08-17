@@ -1,109 +1,116 @@
 <template>
 	<view>
-		<view class="report-cont">
-			<!-- 基本信息 -->
-			<view class="title">基本信息</view>
-			<view class="information">
-				<text>* 姓名</text>
-				<input type="text" v-model="names" placeholder="你的姓名" placeholder-style="color:#bdbdc5" />
-			</view>
-			<view class="information">
-				<text>*手机号</text>
-				<input type="text" v-model="tel" placeholder="你的手机号" placeholder-style="color:#bdbdc5" />
-			</view>
-			<view class="information">
-				<text>*身份证号码</text>
-				<view class="discern-cont">
-					<view class="discern-inpu"><input type="text" v-model="idCard" placeholder="你的身份证号" placeholder-style="color:#bdbdc5" /></view>
-					<view class="discern-img"><image src="../../static/images/scan.png" mode="widthFix"></image></view>
+		<view v-if="display">
+			<view class="report-cont" v-if="!isLogin">
+				<!-- 基本信息 -->
+				<view class="title">基本信息</view>
+				<view class="information">
+					<text>* 姓名</text>
+					<input type="text" v-model="names" placeholder="你的姓名" placeholder-style="color:#bdbdc5" />
 				</view>
-			</view>
-			<view class="information">
-				<text>*性别</text>
-				<view class="discern-cont">
-					<view class="discern-inpu"><input type="text" v-model="gender[index]" disabled placeholder="请选择你的性别" placeholder-style="color:#bdbdc5" /></view>
-					<view class="discern-right">
-						<picker :value="index" :range="gender" @change="bindPickerChange"><view class="uni-input">选择</view></picker>
+				<view class="information">
+					<text>*手机号</text>
+					<input type="text" v-model="tel" placeholder="你的手机号" placeholder-style="color:#bdbdc5" />
+				</view>
+				<view class="information">
+					<text>*身份证号码</text>
+					<view class="discern-cont">
+						<view class="discern-inpu"><input type="text" v-model="idCard" placeholder="你的身份证号" placeholder-style="color:#bdbdc5" /></view>
+						<view class="discern-img"><image src="../../static/images/scan.png" mode="widthFix"></image></view>
 					</view>
 				</view>
-			</view>
-			<!-- 出生日期 -->
-			<view class="information">
-				<text>* 出生日期</text>
-				<view class="discern-cont">
-					<view class="discern-inpu"><input type="text" v-model="date" disabled placeholder="请选择出生日期" placeholder-style="color:#bdbdc5" /></view>
-					<view class="discern-right">
-						<picker :value="date" :start="startDate" :end="endDate" @change="bindDateChange" mode="date"><view class="uni-input">选择</view></picker>
-					</view>
-				</view>
-			</view>
-			<!-- 户籍所在地 -->
-			<view class="information">
-				<text>* 户籍所在地</text>
-				<view class="discern-cont">
-					<view class="discern-inpu"><input type="text" v-model="city" disabled placeholder="请选择户籍所在地" placeholder-style="color:#bdbdc5" /></view>
-					<view class="discern-right">
-						<picker :value="city" @change="bindcityChange" mode="region"><view class="uni-input">选择</view></picker>
-					</view>
-				</view>
-			</view>
-			<!-- 居住省市 -->
-			<view class="information">
-				<text>* 居住省/市</text>
-				<view class="discern-cont">
-					<view class="discern-inpu"><input type="text" v-model="province" disabled placeholder="请选择省/市" placeholder-style="color:#bdbdc5" /></view>
-					<view class="discern-right">
-						<picker :value="province" @change="provinceChange" mode="region"><view class="uni-input">选择</view></picker>
-					</view>
-				</view>
-			</view>
-			<!-- 详细地址 -->
-			<view class="information">
-				<text>* 详细地址</text>
-				<input type="text" v-model="address" placeholder="请输入详细地址" placeholder-style="color:#bdbdc5" />
-			</view>
-			<!--  -->
-			<view class="title distance">是否常居住在江苏</view>
-			<view class="trip">
-				<radio-group @change="radioChange">
-					<label class="trip-cont" v-for="(item, index) in items" :key="item.value">
-						<view><radio :value="item.value" :checked="index === current"></radio></view>
-						<view>{{ item.name }}</view>
-					</label>
-				</radio-group>
-			</view>
-			<!-- 是否有如下状态 -->
-			<view class="title distance">是否有如下状态</view>
-			<view class="trip">
-				<block v-for="(item, index) in state" :key="index">
-					<view class="trip-flex" @click="radioBtn(index, item.value)">
-						<view class="trip-listing">
-							<image v-if="item.selection == 'hide'" src="../../static/images/unselected.png"></image>
-							<image v-else src="../../static/images/selected.png"></image>
+				<view class="information">
+					<text>*性别</text>
+					<view class="discern-cont">
+						<view class="discern-inpu"><input type="text" v-model="gender[index]" disabled placeholder="请选择你的性别" placeholder-style="color:#bdbdc5" /></view>
+						<view class="discern-right">
+							<picker :value="index" :range="gender" @change="bindPickerChange"><view class="uni-input">选择</view></picker>
 						</view>
-						<view>{{ item.name }}</view>
 					</view>
-				</block>
+				</view>
+				<!-- 出生日期 -->
+				<view class="information">
+					<text>* 出生日期</text>
+					<view class="discern-cont">
+						<view class="discern-inpu"><input type="text" v-model="date" disabled placeholder="请选择出生日期" placeholder-style="color:#bdbdc5" /></view>
+						<view class="discern-right">
+							<picker :value="date" :start="startDate" :end="endDate" @change="bindDateChange" mode="date"><view class="uni-input">选择</view></picker>
+						</view>
+					</view>
+				</view>
+				<!-- 户籍所在地 -->
+				<view class="information">
+					<text>* 户籍所在地</text>
+					<view class="discern-cont">
+						<view class="discern-inpu"><input type="text" v-model="city" disabled placeholder="请选择户籍所在地" placeholder-style="color:#bdbdc5" /></view>
+						<view class="discern-right">
+							<picker :value="city" @change="bindcityChange" mode="region"><view class="uni-input">选择</view></picker>
+						</view>
+					</view>
+				</view>
+				<!-- 居住省市 -->
+				<view class="information">
+					<text>* 居住省/市</text>
+					<view class="discern-cont">
+						<view class="discern-inpu"><input type="text" v-model="province" disabled placeholder="请选择省/市" placeholder-style="color:#bdbdc5" /></view>
+						<view class="discern-right">
+							<picker :value="province" @change="provinceChange" mode="region"><view class="uni-input">选择</view></picker>
+						</view>
+					</view>
+				</view>
+				<!-- 详细地址 -->
+				<view class="information">
+					<text>* 详细地址</text>
+					<input type="text" v-model="address" placeholder="请输入详细地址" placeholder-style="color:#bdbdc5" />
+				</view>
+				<!--  -->
+				<view class="title distance">是否常居住在江苏</view>
+				<view class="trip">
+					<radio-group @change="radioChange">
+						<label class="trip-cont" v-for="(item, index) in items" :key="item.value">
+							<view><radio :value="item.value" :checked="index === current"></radio></view>
+							<view>{{ item.name }}</view>
+						</label>
+					</radio-group>
+				</view>
+				<!-- 是否有如下状态 -->
+				<view class="title distance">是否有如下状态</view>
+				<view class="trip">
+					<block v-for="(item, index) in state" :key="index">
+						<view class="trip-flex" @click="radioBtn(index, item.value)">
+							<view class="trip-listing">
+								<image v-if="item.selection == 'hide'" src="../../static/images/unselected.png"></image>
+								<image v-else src="../../static/images/selected.png"></image>
+							</view>
+							<view>{{ item.name }}</view>
+						</view>
+					</block>
+				</view>
+				<view class="Submit">
+					<checkbox-group @change="btnChange">
+						<label for="" class="trip-cont trip-bottom" v-for="item in Submitdata" :key="item.value">
+							<view><checkbox class="check-sub" :value="item.value" :checked="item.checked"></checkbox></view>
+							<view>{{ item.name }}</view>
+						</label>
+					</checkbox-group>
+					<button class="Submit-button" @click="submit" :disabled="isDisabled == 0 ? true : false">提交</button>
+				</view>
 			</view>
-			<view class="Submit">
-				<checkbox-group @change="btnChange">
-					<label for="" class="trip-cont trip-bottom" v-for="item in Submitdata" :key="item.value">
-						<view><checkbox class="check-sub" :value="item.value" :checked="item.checked"></checkbox></view>
-						<view>{{ item.name }}</view>
-					</label>
-				</checkbox-group>
-				<button class="Submit-button" @click="submit" :disabled="isDisabled == 0 ? true : false">提交</button>
+			<HMmessages ref="HMmessages" @complete="HMmessages = $refs.HMmessages" @clickMessage ="clickMessage"></HMmessages>
+			<view class="wx-button" v-if="isLogin">
+				<button plain="true" open-type="getUserInfo" @getuserinfo="geUserInfo">去登陆</button>
 			</view>
-		</view>
-		<HMmessages ref="HMmessages" @complete="HMmessages = $refs.HMmessages" @clickMessage ="clickMessage"></HMmessages>
-		<view class="wx-button" v-if="isLogin">
-			<button plain="true" open-type="getUserInfo" @getuserinfo="geUserInfo">去登陆</button>
+			</view>
+		<view class="tipsdata" v-if="already">
+			<image mode="widthFix"></image>
+			<text>{{tipsdata}}</text>
 		</view>
 	</view>
 </template>
 
 <script>
 import { check } from '../../config/check.js';
+let Dbadd = require('../../config/dbbase.js')
 import HMmessages from '@/components/HM-messages/HM-messages.vue'
 export default {
 	components:{
@@ -111,6 +118,9 @@ export default {
 	},
 	data() {
 		return {
+			tipsdata:'上报成功',
+			already:false,
+			display:false,
 			names: '',
 			tel: '',
 			idCard: '',
@@ -166,9 +176,20 @@ export default {
 					checked: false
 				}
 			],
-			isLogin:false,
+			isLogin:true,
 			agree: [] //最终用户是否勾选同意
 		};
+	},
+	created() {
+		let setdata = wx.getStorageSync('usermen')
+		if(!setdata){
+			// 没有用户信息
+	        this.display = true;
+			this.isLogin = true;
+		}else{
+			// 有用户信息
+			this.reported(setdata.openid)
+		}
 	},
 	methods: {
 		bindPickerChange(e) {
@@ -270,13 +291,85 @@ export default {
 				}
 			});
 		},
+		// 提交数据到集合
+		async btnBase(obj){
+			try{
+				await new Dbadd('tripdata',obj).pullAdd()
+				uni.hideToast()
+				this.already = true;
+				this.display = false;
+			}catch(e){
+				uni.hideToast();
+				let icon = 'error';
+				this.tips('提交失败',icon)
+			}
+		},
 		// 提示
 		tips(tip,icon){
 			this.HMmessages.show(tip,{icon:icon,iconColor:"#fff",fontColor:"#fff",background:"rgba(255,0,0,0.8)"})
 		},
 		//登录
-		geUserInfo(){
-			
+		async geUserInfo(e){
+			uni.showToast({
+				title:'正在登录',
+				icon:'loading',
+				mask:true
+			})
+			// 登录之前先查询之前是否登录过
+			const names = e.detail.userInfo
+			try{
+				let va = await new Dbadd('users').pullGet()
+				if(va.data.length == 0){
+					// 没有登陆过
+					this.query(names)
+				}else{
+					// 登陆过
+					this.storage(va)
+				}
+			}catch(e){
+				uni.hideToast()
+				this.tips('登录失败','danger')
+			}
+		},
+		// 查询登录状态
+		async query(names){
+			try{
+				await new Dbadd('users',names).pullAdd()
+				let va = await new Dbadd('users').pullGet()
+				this.storage(va)
+			}catch(e){
+				uni.hideToast()
+				this.tips('登录失败','danger')
+			}
+		},
+		// 拉取已登录的用户信息并存储到本地
+		storage(va){
+			this.reported(va.data[0]._openid)
+			let nameobj = {
+				avatarUrl:va.data[0].avatarUrl,
+				nickName:va.data[0].nickName,
+				openid:va.data[0]._openid,
+			}
+			uni.setStorageSync('usermen',nameobj)
+		},
+		// 查询该用户之前是否提交到疫情报告
+		async reported(opi){
+			try{
+				let obj = {_openid:opi}
+				let useropenid = await new Dbadd('tripdata').pullSelect(obj)
+				if(useropenid.data.length == 0){
+					// 以前没有提交过
+					this.isLogin = false;
+					this.already = false;
+					this.display = true;
+				}else{
+					// 以前提交过
+					this.already = true;
+					this.display = false;
+				}
+			}catch(e){
+				this.tips('服务器错误！','danger')
+			}
 		}
 	},
 	computed: {
@@ -285,7 +378,6 @@ export default {
 		},
 		//提交按钮是否禁用
 		isDisabled() {
-			console.log(this.agree.length);
 			return this.agree.length;
 		}
 	}

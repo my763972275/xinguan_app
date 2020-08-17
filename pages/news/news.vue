@@ -19,6 +19,7 @@
 </template>
 
 <script>
+	let Dbadd = require('../../config/dbbase.js')
 	export default{
 		data(){
 			return{
@@ -38,12 +39,15 @@
 				]
 			}
 		},
-		created() {
-			
+		async created() {
+			// let homenews = await new Dbadd('article').pullGet()
+			// this.homenews = homenews.data
 		},
 		methods:{
-			btns(article){
-				
+			btns(articleId){
+				uni.navigateTo({
+					url:'../articles/articles?id=' + articleId
+				})
 			}
 		}
 	}
