@@ -17,6 +17,7 @@
 </template>
 
 <script>
+	// 引入富文本的css文件
 	let Dbadd = require('../../config/dbbase.js')
 	export default {
 		data() {
@@ -48,10 +49,6 @@
 .news-author text{
 	display:block;
 	font-size: 29upx;
-}
-.news-author image{
-	width:58upx;
-	height:60upx;
 }
 .news-author{
 	display:flex;

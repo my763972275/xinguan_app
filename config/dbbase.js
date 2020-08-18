@@ -20,6 +20,7 @@ class Dbadd{
 			})
 		})
 	}
+	//add提交到集合
 	pullAdd(){
 		return new Promise((resolve,reject) => {
 			const base = db.collection(this.collect)

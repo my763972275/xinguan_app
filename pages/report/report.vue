@@ -16,7 +16,7 @@
 					<text>*身份证号码</text>
 					<view class="discern-cont">
 						<view class="discern-inpu"><input type="text" v-model="idCard" placeholder="你的身份证号" placeholder-style="color:#bdbdc5" /></view>
-						<view class="discern-img"><image src="../../static/images/scan.png" mode="widthFix"></image></view>
+						<view class="discern-img" @click="IDCard"><image src="../../static/images/scan.png" mode="widthFix"></image></view>
 					</view>
 				</view>
 				<view class="information">
@@ -96,31 +96,32 @@
 					<button class="Submit-button" @click="submit" :disabled="isDisabled == 0 ? true : false">提交</button>
 				</view>
 			</view>
-			<HMmessages ref="HMmessages" @complete="HMmessages = $refs.HMmessages" @clickMessage ="clickMessage"></HMmessages>
-			<view class="wx-button" v-if="isLogin">
-				<button plain="true" open-type="getUserInfo" @getuserinfo="geUserInfo">去登陆</button>
-			</view>
-			</view>
+			<HMmessages ref="HMmessages" @complete="HMmessages = $refs.HMmessages" @clickMessage="clickMessage"></HMmessages>
+			<view class="wx-button" v-if="isLogin"><button plain="true" open-type="getUserInfo" @getuserinfo="geUserInfo">去登陆</button></view>
+		</view>
 		<view class="tipsdata" v-if="already">
-			<image mode="widthFix"></image>
-			<text>{{tipsdata}}</text>
+			<image mode="widthFix" src="../../static/images/success.png"></image>
+			<text>{{ tipsdata }}</text>
 		</view>
 	</view>
 </template>
 
 <script>
 import { check } from '../../config/check.js';
-let Dbadd = require('../../config/dbbase.js')
-import HMmessages from '@/components/HM-messages/HM-messages.vue'
+let Dbadd = require('../../config/dbbase.js');
+// 处理图片上传的类
+let Upload = require('../../config/upload.js')
+let Errdatas = require('../../config/errdata.js')
+import HMmessages from '@/components/HM-messages/HM-messages.vue';
 export default {
-	components:{
+	components: {
 		HMmessages
 	},
 	data() {
 		return {
-			tipsdata:'上报成功',
-			already:false,
-			display:false,
+			tipsdata: '上报成功',
+			already: false,
+			display: false,
 			names: '',
 			tel: '',
 			idCard: '',
@@ -176,19 +177,19 @@ export default {
 					checked: false
 				}
 			],
-			isLogin:true,
+			isLogin: true,
 			agree: [] //最终用户是否勾选同意
 		};
 	},
 	created() {
-		let setdata = wx.getStorageSync('usermen')
-		if(!setdata){
+		let setdata = wx.getStorageSync('usermen');
+		if (!setdata) {
 			// 没有用户信息
-	        this.display = true;
+			this.display = true;
 			this.isLogin = true;
-		}else{
+		} else {
 			// 有用户信息
-			this.reported(setdata.openid)
+			this.reported(setdata.openid);
 		}
 	},
 	methods: {
@@ -281,95 +282,132 @@ export default {
 				lodge: this.current,
 				sympotom: this.sympotom
 			};
+			// console.log(obj)
 			//表单校验
 			check(obj).then(res => {
-				if(res == 'SUCCESS'){
+				if (res == 'SUCCESS') {
+					uni.showToast({
+						text: '上传中',
+						icon: 'loading',
+						mask: true
+					});
 					//提交成功
-				}else{
-					let icon ='danger'
-					this.tips(res,icon)
+					this.btnBase(obj);
+				} else {
+					let icon = 'danger';
+					this.tips(res, icon);
 				}
 			});
 		},
 		// 提交数据到集合
-		async btnBase(obj){
-			try{
-				await new Dbadd('tripdata',obj).pullAdd()
-				uni.hideToast()
+		async btnBase(obj) {
+			try {
+				await new Dbadd('report', obj).pullAdd();
+				uni.hideToast();
 				this.already = true;
 				this.display = false;
-			}catch(e){
+			} catch (e) {
 				uni.hideToast();
 				let icon = 'error';
-				this.tips('提交失败',icon)
+				this.tips('提交失败', icon);
 			}
 		},
 		// 提示
-		tips(tip,icon){
-			this.HMmessages.show(tip,{icon:icon,iconColor:"#fff",fontColor:"#fff",background:"rgba(255,0,0,0.8)"})
+		tips(tip, icon) {
+			// this.HMmessages.show(tip,{icon:icon,iconColor:"#fff",fontColor:"#fff",background:"rgba(255,0,0,0.8)"})
+			this.HMmessages.show(tip, { icon: icon, iconColor: '#fff', fontColor: '#fff', background: 'rgba(255,0,0,0.8)' });
 		},
 		//登录
-		async geUserInfo(e){
+		async geUserInfo(e) {
 			uni.showToast({
-				title:'正在登录',
-				icon:'loading',
-				mask:true
-			})
+				title: '正在登录',
+				icon: 'loading',
+				mask: true
+			});
 			// 登录之前先查询之前是否登录过
-			const names = e.detail.userInfo
-			try{
-				let va = await new Dbadd('users').pullGet()
-				if(va.data.length == 0){
+			const names = e.detail.userInfo;
+			try {
+				let va = await new Dbadd('users').pullGet();
+				if (va.data.length == 0) {
 					// 没有登陆过
-					this.query(names)
-				}else{
+					this.query(names);
+				} else {
 					// 登陆过
-					this.storage(va)
+					this.storage(va);
 				}
-			}catch(e){
-				uni.hideToast()
-				this.tips('登录失败','danger')
+			} catch (e) {
+				uni.hideToast();
+				this.tips('登录失败', 'danger');
 			}
 		},
 		// 查询登录状态
-		async query(names){
-			try{
-				await new Dbadd('users',names).pullAdd()
-				let va = await new Dbadd('users').pullGet()
-				this.storage(va)
-			}catch(e){
-				uni.hideToast()
-				this.tips('登录失败','danger')
+		async query(names) {
+			try {
+				await new Dbadd('users', names).pullAdd();
+				let va = await new Dbadd('users').pullGet();
+				this.storage(va);
+			} catch (e) {
+				uni.hideToast();
+				this.tips('登录失败', 'danger');
 			}
 		},
 		// 拉取已登录的用户信息并存储到本地
-		storage(va){
-			this.reported(va.data[0]._openid)
+		storage(va) {
+			this.reported(va.data[0]._openid);
 			let nameobj = {
-				avatarUrl:va.data[0].avatarUrl,
-				nickName:va.data[0].nickName,
-				openid:va.data[0]._openid,
-			}
-			uni.setStorageSync('usermen',nameobj)
+				avatarUrl: va.data[0].avatarUrl,
+				nickName: va.data[0].nickName,
+				openid: va.data[0]._openid
+			};
+			uni.setStorageSync('usermen', nameobj);
 		},
 		// 查询该用户之前是否提交到疫情报告
-		async reported(opi){
-			try{
-				let obj = {_openid:opi}
-				let useropenid = await new Dbadd('tripdata').pullSelect(obj)
-				if(useropenid.data.length == 0){
+		async reported(opi) {
+			try {
+				let obj = { _openid: opi };
+				let useropenid = await new Dbadd('report').pullSelect(obj);
+				if (useropenid.data.length == 0) {
 					// 以前没有提交过
 					this.isLogin = false;
 					this.already = false;
 					this.display = true;
-				}else{
+				} else {
 					// 以前提交过
 					this.already = true;
 					this.display = false;
 				}
-			}catch(e){
-				this.tips('服务器错误！','danger')
+			} catch (e) {
+				this.tips('服务器错误！', 'danger');
 			}
+		},
+		//上传本低相册或拍照身份证照片
+		async IDCard() {
+			// 得到图片的临时连接地址
+			let imgUrl = await new Upload().upLoadImg()
+			uni.showToast({
+				text:'识别中',
+				icon:'loading',
+				mask:true
+			})
+			let cloudImg = await new Upload().collectionImg(imgUrl)
+			let httpImg = await new Upload().httpImg(cloudImg)
+			try{
+				let result = await new Upload().AIcloud(httpImg)
+				uni.hideToast()
+				this.idResult(result)
+			}catch(e){
+				uni.hideToast()
+				throw new Errdatas().errlist()
+			}
+		},
+		// 身份证识别的结果
+		idResult(resu){
+			let {IdNum,Name,Sex,Birth,Address} = resu
+			this.names = Name;
+			this.idCard = IdNum;
+			this.date = Birth;
+			this.address = Address;
+			this.index = (Sex == '男' ? 0:1)
 		}
 	},
 	computed: {
