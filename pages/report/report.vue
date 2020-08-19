@@ -402,7 +402,7 @@ export default {
 		},
 		// 身份证识别的结果
 		idResult(resu){
-			let {IdNum,Name,Sex,Birth,Address} = resu
+			let {IdNum,Name,Sex,Birth,Address} = resu.result
 			this.names = Name;
 			this.idCard = IdNum;
 			this.date = Birth;

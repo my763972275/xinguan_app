@@ -21,7 +21,7 @@
 			<!-- 菜单 -->
 			<view class="content-menu">
 				<block v-for="(item,index) in menu" :key="index">
-					<view class="content-menu-table">
+					<view class="content-menu-table" @click="navigate(item.url)">
 						<view>
 							<image :src="item.img" mode = widthFix></image>
 						</view>
@@ -107,6 +107,11 @@
 			}
 		},
 		methods: {
+			navigate(url){
+				uni.navigateTo({
+					url:url
+				})
+			},
 			//获取确诊，治愈，死亡三个集合的数据
             xinguanData(){
 				let arr = [
